@@ -1,4 +1,5 @@
 # coding=utf-8
+import time
 
 import control
 import sensor
@@ -8,15 +9,20 @@ import touchmatrix
 class Analyzer:
     def __init__(self):
         self.adc = sensor.ADC(0,0)
-        self.mux = control.Multiplexer([2,3,4,5])
-        self.dec = control.Decoder([6,7,8,9])
+        self.mux = control.Multiplexer([6,13,19,26])
+        self.dec = control.Decoder([17,27,22,23])
         self.tm = touchmatrix.TouchMatrix(self.mux, self.dec, self.adc)
         print('initialize')
 
     def start(self):
         self.adc.open()
         self.adc.start()
-        print(self.tm.get_raw_value(0))
+        while True:
+            array = []
+            for i in range(32):
+                array.append(self.tm.get_raw_value(i))
+            print(array)
+            time.sleep(0.5)
 
 
 if __name__ == '__main__':
