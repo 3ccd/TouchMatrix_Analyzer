@@ -20,10 +20,13 @@ class Analyzer:
         self.adc.start()
         while True:
             array = []
-            for i in range(32):
+            for i in range(16):
                 array.append(self.tm.get_raw_value(i))
             print(array)
             self.drv.test()
+            self.drv.set_from_array([15,14])
+            time.sleep(0.5)
+            self.drv.clear_from_array([15,14])
             time.sleep(0.5)
 
 

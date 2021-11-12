@@ -13,5 +13,5 @@ class TouchMatrix:
         mux_ch = sensor_num % 16
         self.dec.set_value(mux_num)
         self.mux.set_value(mux_ch)
-        time.sleep(0.01)
+        time.sleep(0.001)
         return self.adc.get_data()

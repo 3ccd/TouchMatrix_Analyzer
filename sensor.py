@@ -1,3 +1,5 @@
+import time
+
 import spidev
 import threading
 
@@ -22,6 +24,7 @@ class ADC(threading.Thread):
             self.lock.acquire()
             self.raw = (byte_array[0] << 8) | byte_array[1]
             self.lock.release()
+            time.sleep(0.000001)
 
     def get_data(self):
         self.lock.acquire()

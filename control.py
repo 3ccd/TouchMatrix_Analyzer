@@ -2,9 +2,8 @@ import time
 
 import RPi.GPIO as GPIO
 
-
-class Decoder:
-    def __init__(self, pin_array):
+class TMDevice:
+    def __init__(self, pin_array, pin_count):
         if len(pin_array) < 4:
             return
 
@@ -14,6 +13,14 @@ class Decoder:
         print(self.pin_array)
         for pin in self.pin_array:
             GPIO.setup(pin, GPIO.OUT)
+
+    def __del__(self):
+        GPIO.cleanup()
+
+
+class Decoder(TMDevice):
+    def __init__(self, pin_array):
+        super().__init__(pin_array, 4)
         self.set_enable(True)
 
     def set_value(self, value):
@@ -25,17 +32,9 @@ class Decoder:
         GPIO.output(self.pin_array[3], enable)
 
 
-class Multiplexer:
+class Multiplexer(TMDevice):
     def __init__(self, pin_array):
-        if len(pin_array) < 4:
-            return
-
-        self.pin_array = pin_array
-
-        print(self.pin_array)
-        GPIO.setmode(GPIO.BCM)
-        for pin in self.pin_array:
-            GPIO.setup(pin, GPIO.OUT)
+        super().__init__(pin_array, 4)
 
     def set_value(self, value):
         GPIO.output(self.pin_array[0], (value & 0b00001000) >> 3)
@@ -44,24 +43,19 @@ class Multiplexer:
         GPIO.output(self.pin_array[3], value & 0b00000001)
 
 
-class LEDDriver:
+class LEDDriver(TMDevice):
     def __init__(self, pin_array, drv_count, drv_ch):
-        if len(pin_array) < 4:
-            return
+        super().__init__(pin_array, 4)
 
         self.__DRV_COUNT = drv_count
         self.__DRV_CHANNEL = drv_ch
 
-        self.pin_array = pin_array
         self.SIN = pin_array[0]
         self.SCK = pin_array[1]
         self.RCK = pin_array[2]
         self.ENABLE = pin_array[3]
 
-        GPIO.setmode(GPIO.BCM)
-        for pin in self.pin_array:
-            GPIO.setup(pin, GPIO.OUT)
-        self.set_enable(True)
+        self.set_enable(False)
 
         self.buffer = [0] * (self.__DRV_COUNT * self.__DRV_CHANNEL)
         self.__send_buffer()
@@ -71,12 +65,12 @@ class LEDDriver:
         GPIO.output(pin, GPIO.LOW)
 
     def __send_buffer(self):
-        self.set_enable(True)
+        #self.set_enable(True)
         for i in range(len(self.buffer)):
             GPIO.output(self.SIN, self.buffer[i] & 0b00000001)
             self.__shift(self.SCK)
         self.__shift(self.RCK)
-        self.set_enable(False)
+        #self.set_enable(False)
 
     def set_from_array(self, array):
         for num in array:
@@ -85,7 +79,7 @@ class LEDDriver:
 
     def test(self):
         for i in range(len(self.buffer)):
-            self.buffer[i] = 1
+            self.buffer[i] = 0
         self.__send_buffer()
 
     def clear_from_array(self, array):
