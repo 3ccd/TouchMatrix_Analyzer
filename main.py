@@ -17,7 +17,7 @@ class Analyzer:
 
     def start(self):
         self.adc.open()
-        self.adc.start()
+        self.tm.start()
         while True:
             array = []
             for i in range(16):
