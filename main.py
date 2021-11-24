@@ -1,5 +1,6 @@
 # coding=utf-8
-import time
+import cv2
+import numpy as np
 
 import control
 import sensor
@@ -15,19 +16,13 @@ class Analyzer:
         self.tm = touchmatrix.TouchMatrix(self.mux, self.dec, self.adc)
         print('initialize')
 
+        self.sens_img = np.ndarray()
+
     def start(self):
-        self.adc.open()
         self.tm.start()
-        while True:
-            array = []
-            for i in range(16):
-                array.append(self.tm.get_raw_value(i))
-            print(array)
-            self.drv.test()
-            self.drv.set_from_array([15,14])
-            time.sleep(0.5)
-            self.drv.clear_from_array([15,14])
-            time.sleep(0.5)
+
+    def imager(self, sens_array):
+
 
 
 if __name__ == '__main__':

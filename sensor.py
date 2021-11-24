@@ -4,7 +4,6 @@ import spidev
 
 class ADC:
     def __init__(self, bus, ce):
-        super(ADC, self).__init__(target=self.read)
         self.bus = bus
         self.ce = ce
         self.ads = spidev.SpiDev()
