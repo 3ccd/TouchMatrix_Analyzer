@@ -4,11 +4,13 @@ import time
 
 
 class TouchMatrix(threading.Thread):
-    def __init__(self, mux, dec, adc):
+    def __init__(self, mux, dec, adc, drv):
         super().__init__(target=self.__loop)
         self.mux = mux
         self.dec = dec
         self.adc = adc
+        self.drv = drv
+
         self.sampling_interval = 0.00001
         self.framerate = 60
 
@@ -27,11 +29,20 @@ class TouchMatrix(threading.Thread):
     def set_callback(self, callback):
         self.callback = callback
 
+    def get_latest_buffer(self):
+        return self.buffer
+
+    def __led(self, sens_num):
+        self.drv.clear_buffer()
+        self.drv.set_from_array([sens_num - 11, sens_num, sens_num + 1, sens_num + 11], 1)
+        self.drv.send_buffer()
+
     def __get_raw_value(self, sensor_num):
         mux_num = math.floor(sensor_num / 16)
         mux_ch = sensor_num % 16
         self.dec.set_value(mux_num)
         self.mux.set_value(mux_ch)
+        self.__led(sensor_num)
         time.sleep(self.sampling_interval)
         return self.adc.read()
 
@@ -42,6 +53,6 @@ class TouchMatrix(threading.Thread):
                 array.append(self.__get_raw_value(i))
             self.lock.acquire()
             self.buffer = array.copy()
+            self.lock.release()
             if self.callback is not None:
                 self.callback(self.buffer)
-            self.lock.release()
