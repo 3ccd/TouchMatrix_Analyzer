@@ -64,19 +64,21 @@ class LEDDriver(TMDevice):
         GPIO.output(pin, GPIO.LOW)
 
     def send_buffer(self):
-        #self.set_enable(True)
-        for i in range(len(self.buffer)):
-            GPIO.output(self.SIN, self.buffer[(len(self.buffer) -1) - i] & 0b00000001)
+        self.set_enable(True)
+        count = len(self.buffer)
+        for i in range(count):
+            GPIO.output(self.SIN, self.buffer[(count -1) - i] & 0b00000001)
             self.__shift(self.SCK)
         self.__shift(self.RCK)
-        #self.set_enable(False)
+        self.set_enable(False)
 
     def set(self, num, enable):
         self.buffer[num] = enable & 0b00000001
 
     def set_from_array(self, array, enable):
         for num in array:
-            if num > 0 & num <= len(self.buffer): continue
+            if ( num < 0 ) or (num >= len(self.buffer)):
+                continue
             self.buffer[num] = enable & 0b00000001
 
     def clear_buffer(self):
