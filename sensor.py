@@ -1,4 +1,3 @@
-import time
 import spidev
 
 
@@ -16,4 +15,6 @@ class ADC:
 
     def read(self):
         byte_array = self.ads.readbytes(2)
+        byte_array = self.ads.readbytes(2)
         self.raw = (byte_array[0] << 8) | byte_array[1]
+        return self.raw

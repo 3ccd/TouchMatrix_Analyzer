@@ -19,6 +19,8 @@ class TouchMatrix(threading.Thread):
         self.lock = threading.Lock()
         self.callback = None
 
+        self.prev_led_num = 0;
+
     def start(self) -> None:
         self.adc.open()
         super().start()
@@ -35,12 +37,15 @@ class TouchMatrix(threading.Thread):
         return self.buffer
 
     def __led(self, sens_num):
+        if self.prev_led_num == sens_num: return
+
         self.drv.clear_buffer()
         row = int((sens_num / 11) % 2)
         self.drv.set_from_array([sens_num - 11, sens_num-row, sens_num+(1-row) , sens_num + 11], 1)
         self.drv.send_buffer()
+        self.prev_led_num = sens_num
 
-    def __get_raw_value(self, sensor_num):
+    def get_raw_value(self, sensor_num):
         mux_num = math.floor(sensor_num / 16)
         mux_ch = sensor_num % 16
         self.dec.set_value(mux_num)
@@ -52,10 +57,11 @@ class TouchMatrix(threading.Thread):
     def __loop(self):
         while True:
             array = []
-            for i in range(self.led_count-1):
-                array.append(self.__get_raw_value(i))
+            for i in range(self.led_count):
+                ret = self.get_raw_value(i)
+                array.append(ret)
             self.lock.acquire()
-            self.buffer = array.copy()
+            self.buffer = array
             self.lock.release()
             if self.callback is not None:
                 self.callback(self.buffer)
