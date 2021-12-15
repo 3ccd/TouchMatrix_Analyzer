@@ -19,7 +19,10 @@ class TouchMatrix(threading.Thread):
         self.lock = threading.Lock()
         self.callback = None
 
-        self.prev_led_num = 0;
+        self.prev_led_num = 0
+
+        self.warmup_count = 0
+        self.warmup = 5
 
     def start(self) -> None:
         self.adc.open()
@@ -63,5 +66,7 @@ class TouchMatrix(threading.Thread):
             self.lock.acquire()
             self.buffer = array
             self.lock.release()
-            if self.callback is not None:
+            if self.callback is not None and self.warmup_count > self.warmup:
                 self.callback(self.buffer)
+            else:
+                self.warmup_count += 1

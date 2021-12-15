@@ -10,7 +10,7 @@ class ADC:
 
     def open(self):
         self.ads.open(self.bus, self.ce)
-        self.ads.mode = 3
+        self.ads.mode = 2
         self.ads.max_speed_hz = 1000000
 
     def read(self):
