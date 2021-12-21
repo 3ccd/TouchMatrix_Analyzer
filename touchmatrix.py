@@ -12,8 +12,8 @@ class TouchMatrix(threading.Thread):
         self.drv = drv
 
         self.sampling_interval = 0.00001
-        self.framerate = 60
         self.led_count = 121
+        self.led_enable = True
 
         self.buffer = []
         self.lock = threading.Lock()
@@ -28,10 +28,10 @@ class TouchMatrix(threading.Thread):
         self.adc.open()
         super().start()
 
-    def config(self, interval, framerate = 30, led_count = 121):
+    def config(self, interval = 0.00001, led_count = 121, led_enable = True):
         self.sampling_interval = interval
-        self.framerate = framerate
         self.led_count = led_count
+        self.led_enable = led_enable
 
     def set_callback(self, callback):
         self.callback = callback
@@ -53,7 +53,7 @@ class TouchMatrix(threading.Thread):
         mux_ch = sensor_num % 16
         self.dec.set_value(mux_num)
         self.mux.set_value(mux_ch)
-        self.__led(sensor_num)
+        if self.led_enable: self.__led(sensor_num)
         time.sleep(self.sampling_interval)
         return self.adc.read()
 

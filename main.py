@@ -5,7 +5,6 @@ import control
 import sensor
 import touchmatrix
 import time
-import math
 
 import cv2
 import numpy as np
@@ -27,6 +26,9 @@ class Analyzer:
         self.cal_state = 0
         self.cal_max = None
         self.cal_min = None
+
+        GPIO.setup(14, GPIO.OUT)
+        self.frame_state = 0
 
         self.led_insert_pos = self.insert_led()
         print(self.led_insert_pos)
@@ -60,12 +62,20 @@ class Analyzer:
             tmp = np.array([elapsed_time, self.tm.get_raw_value(74)]).reshape(1,2)
             n_array = np.append(n_array, tmp, axis=0)
             time.sleep(0.001)
-            if elapsed_time > 4.0:
+            """if elapsed_time > 4.0:
                 break
             elif elapsed_time > 2.0:
                 GPIO.output(14, GPIO.LOW)
             elif elapsed_time > 0.0:
-                GPIO.output(14, GPIO.HIGH)
+                GPIO.output(14, GPIO.HIGH)"""
+            if elapsed_time > 3.0:
+                break
+            elif elapsed_time > 2.0:
+                self.drv.set_enable(True)
+            elif elapsed_time > 1.0:
+                self.drv.set_enable(False)
+            elif elapsed_time > 0.0:
+                self.drv.set_enable(True)
 
         np.savetxt('./np_savetxt_touch_'+str(time.time())+'.csv', n_array, delimiter=',', fmt='%f')
 
@@ -97,6 +107,10 @@ class Analyzer:
             self.cal_state = self.CAL_MAX
             return
 
+    def dummy(self,array):
+        GPIO.output(14, self.frame_state)
+        self.frame_state = not self.frame_state
+
 
     def loop(self, array):
         data = np.array(array, np.uint16)
@@ -110,7 +124,10 @@ class Analyzer:
 
             calc = (offset / self.range)
             calc[calc >= 1.0] = 1.0
-            calc = calc * 65535.0
+            #calc = (calc ** 0.7 )* 65535.0
+            #calc = (np.sin(np.pi * (calc - 0.1)) + 1) / 2 * 65535
+            calc = (calc * 3) * 65535.0
+            calc[calc >= 65535.0] = 65535.0
             n_array = calc.astype(np.uint16)
         else:
             return
